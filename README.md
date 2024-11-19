@@ -229,9 +229,9 @@ If you use this evaluator in your research, please cite:
 
 ## 🙋‍♂️ Support
 
-- 📫 Email: support@statisticalmodelevauator.org
-- 💬 Issues: [GitHub Issues](https://github.com/yourusername/statistical-model-evaluator/issues)
-- 📖 Documentation: [Full Documentation](https://statistical-model-evaluator.readthedocs.io/)
+- 📫 Email: kye@swarms.world
+- 💬 Issues: [GitHub Issues](https://github.com/The-Swarm-Corporation/StatisticalModelEvaluator/issues)
+- 📖 Documentation: [Full Documentation](https://docs.swarms.world)
 
 ## 🙏 Acknowledgments
 
