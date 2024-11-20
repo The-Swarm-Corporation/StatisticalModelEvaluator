@@ -1,14 +1,16 @@
-from typing import List, Optional, Dict, Any, Protocol
-from dataclasses import dataclass
-import numpy as np
-from scipy import stats
-import pandas as pd
-from loguru import logger
 import json
-from pathlib import Path
 import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Protocol
+
+import numpy as np
+import pandas as pd
+from loguru import logger
+from scipy import stats
+from difflib import SequenceMatcher
 
 
 class ModelInterface(Protocol):
@@ -81,16 +83,48 @@ class StatisticalModelEvaluator:
             format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
         )
 
+        logger.debug("Initializing StatisticalModelEvaluator")
+
         if cache_dir:
             self.cache_dir = Path(cache_dir)
             self.cache_dir.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Cache directory set to {self.cache_dir}")
         else:
             self.cache_dir = None
+            logger.debug("No cache directory specified")
 
         if random_seed is not None:
             np.random.seed(random_seed)
+            logger.debug(f"Random seed set to {random_seed}")
 
         logger.info("Initialized StatisticalModelEvaluator")
+
+    def _calculate_score(
+        self,
+        prediction: str,
+        correct_answer: str,
+    ) -> float:
+        logger.debug(
+            f"Calculating score for prediction: '{prediction}' vs answer: '{correct_answer}'"
+        )
+
+        prediction = prediction.strip().lower()
+        correct_answer = correct_answer.strip().lower()
+
+        # Check if correct answer is in prediction
+        if correct_answer in prediction:
+            logger.debug("Exact match found")
+            return 1.0
+
+        # Fallback to sequence matching
+        similarity = SequenceMatcher(
+            None,
+            prediction,
+            correct_answer,
+        ).ratio()
+
+        logger.debug(f"Sequence similarity score: {similarity}")
+        return similarity if similarity > 0.8 else 0.0
 
     def evaluate_model(
         self,
@@ -132,6 +166,7 @@ class StatisticalModelEvaluator:
             )
             ```
         """
+        logger.debug("Starting model evaluation")
         start_time = time.time()
 
         # Check if cached results exist
@@ -141,9 +176,11 @@ class StatisticalModelEvaluator:
                 logger.info(f"Loading cached results for {cache_key}")
                 with open(cache_path) as f:
                     cached_data = json.load(f)
+                logger.debug("Successfully loaded cached results")
                 return EvalResult(**cached_data)
 
         # Validate inputs
+        logger.debug("Validating inputs")
         assert len(questions) == len(
             correct_answers
         ), "Questions and answers must have same length"
@@ -163,6 +200,10 @@ class StatisticalModelEvaluator:
                 batch_questions = questions[i : i + batch_size]
                 batch_answers = correct_answers[i : i + batch_size]
 
+                logger.debug(
+                    f"Processing batch {i//batch_size + 1} with {len(batch_questions)} questions"
+                )
+
                 # Create partial function for each question/answer pair
                 tasks = [
                     partial(
@@ -180,23 +221,28 @@ class StatisticalModelEvaluator:
                     executor.map(lambda f: f(), tasks)
                 )
                 all_scores.extend(batch_scores)
+                logger.debug(f"Batch {i//batch_size + 1} complete")
 
         # Calculate statistics
+        logger.debug("Calculating statistics")
         scores_array = np.array(all_scores)
         mean_score = np.mean(scores_array)
 
         if cluster_ids:
-            # Calculate clustered standard error
+            logger.debug("Calculating clustered standard error")
             sem = self._calculate_clustered_sem(
                 scores_array, cluster_ids
             )
         else:
-            # Calculate regular standard error
+            logger.debug("Calculating regular standard error")
             sem = stats.sem(scores_array)
 
         # Calculate 95% confidence interval
         ci_lower, ci_upper = stats.norm.interval(
             0.95, loc=mean_score, scale=sem
+        )
+        logger.debug(
+            f"Confidence interval: [{ci_lower:.3f}, {ci_upper:.3f}]"
         )
 
         # Create result object
@@ -217,6 +263,7 @@ class StatisticalModelEvaluator:
         # Cache results if requested
         if cache_key and self.cache_dir:
             cache_path = self.cache_dir / f"{cache_key}.json"
+            logger.debug(f"Caching results to {cache_path}")
             with open(cache_path, "w") as f:
                 json.dump(result.__dict__, f)
             logger.info(f"Cached results to {cache_path}")
@@ -239,17 +286,24 @@ class StatisticalModelEvaluator:
         Returns:
             Dictionary containing comparison metrics
         """
+        logger.debug("Starting model comparison")
+
         # Calculate mean difference
         mean_diff = results_a.mean_score - results_b.mean_score
+        logger.debug(f"Mean difference: {mean_diff:.3f}")
 
         # Calculate correlation between scores
         correlation = np.corrcoef(
             results_a.raw_scores, results_b.raw_scores
         )[0, 1]
+        logger.debug(f"Score correlation: {correlation:.3f}")
 
         # Perform paired t-test
         t_stat, p_value = stats.ttest_rel(
             results_a.raw_scores, results_b.raw_scores
+        )
+        logger.debug(
+            f"T-test results: t={t_stat:.3f}, p={p_value:.3f}"
         )
 
         return {
@@ -279,6 +333,10 @@ class StatisticalModelEvaluator:
         Returns:
             Required number of samples
         """
+        logger.debug(
+            f"Calculating required samples for effect size {effect_size}"
+        )
+
         # Calculate required sample size using power analysis
         required_n = stats.tt_ind_solve_power(
             effect_size=effect_size / np.sqrt(baseline_variance),
@@ -286,6 +344,9 @@ class StatisticalModelEvaluator:
             power=power,
             ratio=1.0,
             alternative="two-sided",
+        )
+        logger.info(
+            f"Required number of samples: {int(np.ceil(required_n))}"
         )
         return int(np.ceil(required_n))
 
@@ -308,18 +369,25 @@ class StatisticalModelEvaluator:
         Returns:
             Average score for the question
         """
+        logger.debug(f"Evaluating question: '{question}'")
         scores = []
-        for _ in range(num_samples):
+        for i in range(num_samples):
             try:
                 prediction = model.run(question)
                 score = self._calculate_score(
                     prediction, correct_answer
                 )
                 scores.append(score)
+                logger.debug(
+                    f"Sample {i+1}/{num_samples} score: {score:.3f}"
+                )
             except Exception as e:
                 logger.error(f"Error evaluating question: {str(e)}")
                 scores.append(0.0)
-        return np.mean(scores)
+
+        avg_score = np.mean(scores)
+        logger.debug(f"Average score for question: {avg_score:.3f}")
+        return avg_score
 
     def _calculate_clustered_sem(
         self, scores: np.ndarray, cluster_ids: List[str]
@@ -334,32 +402,16 @@ class StatisticalModelEvaluator:
         Returns:
             Clustered standard error
         """
+        logger.debug("Calculating clustered standard error")
         df = pd.DataFrame({"score": scores, "cluster": cluster_ids})
 
         # Calculate cluster means
         cluster_means = df.groupby("cluster")["score"].mean()
+        logger.debug(f"Number of clusters: {len(cluster_means)}")
 
         # Calculate clustered standard error
         n_clusters = len(cluster_means)
         cluster_variance = cluster_means.var()
-        return np.sqrt(cluster_variance / n_clusters)
-
-    @staticmethod
-    def _calculate_score(
-        prediction: str, correct_answer: str
-    ) -> float:
-        """
-        Calculate score for a single prediction.
-        Override this method for custom scoring logic.
-
-        Args:
-            prediction: Model's prediction
-            correct_answer: Correct answer
-
-        Returns:
-            Score between 0 and 1
-        """
-        return float(
-            prediction.strip().lower()
-            == correct_answer.strip().lower()
-        )
+        sem = np.sqrt(cluster_variance / n_clusters)
+        logger.debug(f"Clustered SEM: {sem:.3f}")
+        return sem
