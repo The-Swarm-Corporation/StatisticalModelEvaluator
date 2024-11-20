@@ -28,16 +28,9 @@ A robust, production-ready framework for statistically rigorous evaluation of la
 
 ## 📋 Requirements
 
-- Python 3.8+
-- Dependencies:
-  ```
-  numpy>=1.21.0
-  pandas>=1.3.0
-  scipy>=1.7.0
-  loguru>=0.6.0
-  ```
-
-
+```
+pip3 install -r requirements.txt
+```
 
 ## Usage 
 
