@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from swarm_models import OpenAIChat
 from swarms import Agent
 
-from main import StatisticalModelEvaluator
+from sme.main import StatisticalModelEvaluator
 
 load_dotenv()
 
