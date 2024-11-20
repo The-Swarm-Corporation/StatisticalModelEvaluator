@@ -13,13 +13,9 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("OPENAI_API_KEY environment variable not set")
 
-# Create instances of the OpenAIChat class with different models
+# Create instance of OpenAIChat
 model_gpt4 = OpenAIChat(
     openai_api_key=api_key, model_name="gpt-4o", temperature=0.1
-)
-
-model_gpt35 = OpenAIChat(
-    openai_api_key=api_key, model_name="gpt-4o-mini", temperature=0.1
 )
 
 # Initialize a general knowledge agent
@@ -55,7 +51,7 @@ general_answers = [
     "Leonardo da Vinci",
 ]
 
-# Evaluate models on general knowledge questions
+# Evaluate model on general knowledge questions
 result_gpt4 = evaluator.evaluate_model(
     model=agent,
     questions=general_questions,
@@ -63,20 +59,6 @@ result_gpt4 = evaluator.evaluate_model(
     num_samples=5,
 )
 
-result_gpt35 = evaluator.evaluate_model(
-    model=agent,
-    questions=general_questions,
-    correct_answers=general_answers,
-    num_samples=5,
-)
-
-# Compare model performance
-comparison = evaluator.compare_models(result_gpt4, result_gpt35)
 
 # Print results
-print(f"GPT-4 Mean Score: {result_gpt4.mean_score:.3f}")
-print(f"GPT-3.5 Mean Score: {result_gpt35.mean_score:.3f}")
-print(
-    f"Significant Difference: {comparison['significant_difference']}"
-)
-print(f"P-value: {comparison['p_value']:.3f}")
+print(result_gpt4)

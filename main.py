@@ -1,7 +1,6 @@
 import json
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
@@ -11,6 +10,7 @@ import pandas as pd
 from loguru import logger
 from scipy import stats
 from difflib import SequenceMatcher
+from pydantic import BaseModel
 
 
 class ModelInterface(Protocol):
@@ -29,10 +29,9 @@ class ModelInterface(Protocol):
         ...
 
 
-@dataclass
-class EvalResult:
+class EvalResult(BaseModel):
     """
-    Data class to store evaluation results for a single model run.
+    Pydantic model to store evaluation results for a single model run.
 
     Attributes:
         mean_score (float): Average score across all questions
@@ -271,7 +270,9 @@ class StatisticalModelEvaluator:
         logger.info(
             f"Evaluation complete. Mean score: {mean_score:.3f} ± {sem:.3f} (95% CI)"
         )
-        return result
+        
+        # json_output = result.model_dump()
+        return result.model_dump_json(indent=4)
 
     def compare_models(
         self, results_a: EvalResult, results_b: EvalResult
