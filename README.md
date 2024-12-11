@@ -26,10 +26,11 @@ A robust, production-ready framework for statistically rigorous evaluation of la
   - Parallel processing
   - Modular design
 
-## 📋 Requirements
+## Instal
 
-```
-pip3 install -r requirements.txt
+
+```bash
+pip3 install -U evalops
 ```
 
 ## Usage 
@@ -41,7 +42,7 @@ from dotenv import load_dotenv
 from swarm_models import OpenAIChat
 from swarms import Agent
 
-from main import StatisticalModelEvaluator
+from evalops import StatisticalModelEvaluator
 
 load_dotenv()
 
