@@ -1,4 +1,7 @@
 from evalops.main import StatisticalModelEvaluator
-from evalops.evaluator_module import AdvancedScorer
+from evalops.huggingface_loader import EvalDatasetLoader
 
-__all__ = ["StatisticalModelEvaluator", "AdvancedScorer"]
+__all__ = [
+    "StatisticalModelEvaluator",
+    "EvalDatasetLoader",
+]

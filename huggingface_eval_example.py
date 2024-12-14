@@ -42,15 +42,21 @@ eval_loader = EvalDatasetLoader(cache_dir="./eval_cache")
 questions, answers = eval_loader.load_dataset(
     dataset_name="truthful_qa",
     subset="multiple_choice",
-    split="validation"
+    split="validation",
+    answer_key="best_question",
 )
+
+# Check if questions are loaded
+if not questions or not answers:
+    raise ValueError("No questions or answers loaded from the dataset.")
+
 
 # Use the loaded questions and answers with your evaluator
 result_gpt4 = evaluator.evaluate_model(
     model=agent,
     questions=questions,
     correct_answers=answers,
-    num_samples=5
+    num_samples=5,
 )
 
 

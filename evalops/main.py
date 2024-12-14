@@ -270,7 +270,7 @@ class StatisticalModelEvaluator:
         logger.info(
             f"Evaluation complete. Mean score: {mean_score:.3f} ± {sem:.3f} (95% CI)"
         )
-        
+
         # json_output = result.model_dump()
         return result.model_dump_json(indent=4)
 
