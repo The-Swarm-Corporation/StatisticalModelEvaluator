@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "evalops"
-version = "0.0.3"
+version = "0.0.4"
 description = "evalops - TGSC"
 license = "MIT"
 authors = ["Kye Gomez <kye@apac.ai>"]
@@ -23,9 +23,15 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-swarms = "*"
+datasets = "*"
+loguru = "*"
+difflib = "*"
 pydantic = "*"
-fastapi = "*"
+scipy = "*"
+pandas = "*"
+numpy = "*"
+
+
 
 [tool.poetry.group.lint.dependencies]
 ruff = "^0.6.2"

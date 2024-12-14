@@ -1,6 +1,7 @@
 import json
 import time
 from concurrent.futures import ThreadPoolExecutor
+from difflib import SequenceMatcher
 from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
@@ -8,9 +9,8 @@ from typing import Any, Dict, List, Optional, Protocol
 import numpy as np
 import pandas as pd
 from loguru import logger
-from scipy import stats
-from difflib import SequenceMatcher
 from pydantic import BaseModel
+from scipy import stats
 
 
 class ModelInterface(Protocol):
@@ -74,8 +74,6 @@ class StatisticalModelEvaluator:
         log_level: str = "INFO",
         random_seed: Optional[int] = None,
     ):
-        # Initialize logging
-        logger.remove()
         logger.add(
             lambda msg: print(msg),
             level=log_level,
