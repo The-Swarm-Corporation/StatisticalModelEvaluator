@@ -48,7 +48,9 @@ questions, answers = eval_loader.load_dataset(
 
 # Check if questions are loaded
 if not questions or not answers:
-    raise ValueError("No questions or answers loaded from the dataset.")
+    raise ValueError(
+        "No questions or answers loaded from the dataset."
+    )
 
 
 # Use the loaded questions and answers with your evaluator
