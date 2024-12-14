@@ -46,13 +46,6 @@ questions, answers = eval_loader.load_dataset(
     answer_key="best_question",
 )
 
-# Check if questions are loaded
-if not questions or not answers:
-    raise ValueError(
-        "No questions or answers loaded from the dataset."
-    )
-
-
 # Use the loaded questions and answers with your evaluator
 result_gpt4 = evaluator.evaluate_model(
     model=agent,
