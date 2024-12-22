@@ -45,9 +45,11 @@ questions, answers = eval_loader.load_dataset(
     answer_key="best_question",
 )
 
-print(eval(
-    questions = questions,
-    answers = answers,
-    agent = agent,
-    samples=1,
-))
+print(
+    eval(
+        questions=questions,
+        answers=answers,
+        agent=agent,
+        samples=1,
+    )
+)

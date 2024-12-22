@@ -52,9 +52,11 @@ general_answers = [
 ]
 
 
-print(eval(
-    questions = general_questions,
-    answers=general_answers,
-    agent=agent,
-    samples=2,
-))
+print(
+    eval(
+        questions=general_questions,
+        answers=general_answers,
+        agent=agent,
+        samples=2,
+    )
+)

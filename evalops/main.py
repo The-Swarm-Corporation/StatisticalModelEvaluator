@@ -16,7 +16,7 @@ from scipy import stats
 class ModelInterface(Protocol):
     """Protocol defining the required interface for model classes."""
 
-    def run(self, task: str) -> str:
+    def run(self, task: str, img: str = None) -> str:
         """
         Run the model on a given task.
 
@@ -128,17 +128,19 @@ class StatisticalModelEvaluator:
         model: ModelInterface,
         questions: List[str],
         correct_answers: List[str],
+        imgs: List[str] = None,
         cluster_ids: Optional[List[str]] = None,
         num_samples: int = 1,
         batch_size: int = 32,
         cache_key: Optional[str] = None,
-    ) -> EvalResult:
+    ) -> Any:
         """
         Evaluate a model on a set of questions with statistical analysis.
 
         Args:
             model: Model instance with a .run(task: str) -> str method
             questions: List of question strings
+            imgs: List of image file paths
             correct_answers: List of correct answer strings
             cluster_ids: Optional list of cluster identifiers for questions
             num_samples: Number of times to sample each question
@@ -268,9 +270,7 @@ class StatisticalModelEvaluator:
         logger.info(
             f"Evaluation complete. Mean score: {mean_score:.3f} ± {sem:.3f} (95% CI)"
         )
-
-        # json_output = result.model_dump()
-        return result.model_dump_json(indent=4)
+        return result
 
     def compare_models(
         self, results_a: EvalResult, results_b: EvalResult
@@ -355,6 +355,7 @@ class StatisticalModelEvaluator:
         question: str,
         correct_answer: str,
         num_samples: int,
+        img: str = None,
     ) -> float:
         """
         Evaluate a single question multiple times and return average score.
@@ -364,6 +365,7 @@ class StatisticalModelEvaluator:
             question: Question string
             correct_answer: Correct answer string
             num_samples: Number of samples to take
+            img: Image file path
 
         Returns:
             Average score for the question
@@ -372,7 +374,7 @@ class StatisticalModelEvaluator:
         scores = []
         for i in range(num_samples):
             try:
-                prediction = model.run(question)
+                prediction = model.run(task=question)
                 score = self._calculate_score(
                     prediction, correct_answer
                 )
