@@ -403,3 +403,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Thanks to all contributors
 - Inspired by the paper "A Statistical Approach to Model Evaluations" (2024)
+
+# Todo
+- create unit tests for function calling
