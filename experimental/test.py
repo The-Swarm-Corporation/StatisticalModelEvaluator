@@ -195,9 +195,7 @@ def optimized_matrix_multiply_with_addition(
         + 1
     )
 
-    torch.tensor(
-        [2**i for i in range(max_bits)], dtype=torch.int32
-    )
+    torch.tensor([2**i for i in range(max_bits)], dtype=torch.int32)
 
     # Process matrices in blocks for better cache utilization
     for i in range(0, m, chunk_size):
